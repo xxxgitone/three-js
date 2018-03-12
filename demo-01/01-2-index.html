@@ -7,6 +7,7 @@
   <title>Document</title>
   <script src="https://threejs.org/build/three.min.js"></script>
   <script src="https://rawgit.com/mrdoob/stats.js/master/build/stats.min.js"></script>
+  <script src="../lib/dat.js"></script>
   <style>
     body {
       margin: 0;
@@ -18,16 +19,17 @@
   <div id="WebGL-output"></div>
   <div id="Stats-output"></div>
   <script>
+    var camera, scene, renderer
     function init () {
 
       var stats = initStats()
 
       // 场景:是一个容器,主要用于保存,跟踪所要渲染的物体和使用的光源
-      var scene = new THREE.Scene()
+      scene = new THREE.Scene()
       // 摄像机:决定哪些东西会被渲染到场景中
-      var camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+      camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
       // 渲染器
-      var renderer = new THREE.WebGLRenderer();
+      renderer = new THREE.WebGLRenderer();
       // 设置场景的背景颜色为白色
       renderer.setClearColor(new THREE.Color(0xEEEEEE, 1.0));
       // 场景的大小
@@ -101,6 +103,21 @@
       camera.lookAt(scene.position);
       // add the output of the renderer to the html element
       document.getElementById("WebGL-output").appendChild(renderer.domElement);
+
+      var controls = new function () {
+        // 定义两个属性并给出默认值
+        // 正方体旋转速度
+        this.rotationSpeed = 0.02
+        // 小球弹跳速度
+        this.bouncingSpeed = 0.02
+      }
+
+      var gui = new dat.GUI()
+      // 取值范围0~0.5
+      gui.add(controls, 'rotationSpeed', 0, 0.5)
+      gui.add(controls, 'bouncingSpeed', 0, 0.5)      
+
+
       // 渲染场景
       // renderer.render(scene, camera);
       renderScene();
@@ -110,12 +127,15 @@
         stats.update();// 通知stats对象画面何时被渲染
 
         // 让正方体沿三个轴旋转
-        cube.rotation.x += 0.02
-        cube.rotation.y += 0.02
-        cube.rotation.z += 0.02
+        // cube.rotation.x += 0.02
+        // cube.rotation.y += 0.02
+        // cube.rotation.z += 0.02
+        cube.rotation.x += controls.rotationSpeed
+        cube.rotation.y += controls.rotationSpeed
+        cube.rotation.z += controls.rotationSpeed
 
         // 小球弹跳
-        step += 0.04;
+        step += controls.bouncingSpeed;
         sphere.position.x = 20 + (10 * (Math.cos(step)))
         sphere.position.y = 2 + (10 * Math.abs(Math.sin(step)))
 
@@ -138,7 +158,16 @@
       }
     }
 
+    // 自适应大小
+    function onResize () {
+      camera.aspect = window.innerWidth / window.innerHeight
+      camera.updateProjectionMatrix()
+      renderer.setSize(window.innerWidth, window.innerHeight)
+    }
+
     window.onload = init
+
+    window.addEventListener('resize', onResize, false)
   </script>
 </body>
 </html>
